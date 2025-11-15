@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useState } from "react";
+import { useCallback, useReducer, useState, type SVGProps } from "react";
 
 type Message = {
     author: "me" | "them";
@@ -95,10 +95,20 @@ function App() {
                         <div
                             className={`flex ${message.author === "me" ? "justify-end" : "justify-start"}`}
                         >
-                            <div
-                                className={`${message.author === "me" ? "bg-emerald-500/20 text-emerald-950 rounded-tr-none" : "bg-stone-200 text-stone-800 rounded-tl-none"} p-3 rounded-2xl max-w-md`}
-                            >
-                                {message.text}
+                            <div className="flex flex-col">
+                                <div
+                                    className={`flex gap-1 py-1 bg-emerald-500/20 border-2 border-emerald-500 rounded-lg items-center ${message.author === "me" ? "justify-end" : "justify-start"}`}
+                                >
+                                    <Droplets
+                                        className="text-emerald-500"
+                                        water="the following prompt used ~3.4ml"
+                                    />
+                                </div>
+                                <div
+                                    className={`${message.author === "me" ? "bg-emerald-500/20 text-emerald-950 rounded-tr-none max-w-md" : "text-lg max-w-lg"} p-3 rounded-2xl`}
+                                >
+                                    {message.text}
+                                </div>
                             </div>
                         </div>
                     );
@@ -129,7 +139,13 @@ const Input = ({
                 className="w-full px-4 py-4 rounded-2xl border-emerald-600/50 border-2"
                 placeholder="ask..."
             />
-            <div className="py-2 flex gap-2 justify-end text-sm">
+            <div className="py-2 flex gap-2 text-sm">
+                <div className="flex items-center gap-1">
+                    This chat has drank an equivelant of
+                    <Droplets className="text-emerald-500" water={"3.4ml"} /> of
+                    water
+                </div>
+                <div className="mx-auto" />
                 <button className="bg-green-600 text-white rounded px-2 py-1 uppercase tracking-wide">
                     send
                 </button>
@@ -140,6 +156,28 @@ const Input = ({
         </form>
     );
 };
+
+const Droplets = (props) => (
+    <div className="flex gap-1 items-center">
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-droplets-icon lucide-droplets"
+            {...props}
+        >
+            <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z" />
+            <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97" />
+        </svg>
+        <div className="font-semibold">{props.water}</div>
+    </div>
+);
 
 const calculateWater = (text: string) => {
     return text.length * 20;
