@@ -1,0 +1,15 @@
+Water Usage Calculation (From https://indianacapitalchronicle.com/2025/09/02/ai-has-a-hidden-water-cost-%E2%88%92-heres-how-to-calculate-yours/#:~:text=For%20a%20medium%2Dlength%20query,power%2Dgeneration%20infrastructure%20all%20matter.): 
+
+Here’s the one-line formula you’ll need:
+
+Energy per prompt (watt-hours) × Water factor (milliliters per watt-hour) = Water per prompt (in milliliters)
+
+For a medium-length query to GPT-5, that calculation should use the figures of 19.3 watt-hours and 2 milliliters per watt-hour. 19.3 x 2 = 39 milliliters of water per response.
+
+For a medium-length query to GPT-4o, the calculation is 1.75 watt-hours x 2 milliliters per watt-hour = 3.5 milliliters of water per response.
+
+If you assume the data centers are more efficient, and use 1.3 milliliters per watt-hour, the numbers drop: about 25 milliliters for GPT-5 and 2.3 milliliters for GPT-4o.
+
+A recent Google technical report said a median text prompt to its Gemini system uses just 0.24 watt-hours of electricity and about 0.26 milliliters of water – roughly the volume of five drops. However, the report does not say how long that prompt is, so it can’t be compared directly with GPT water usage.
+
+Those different estimates – ranging from 0.26 milliliters to 39 milliliters – demonstrate how much the effects of efficiency, AI model and power-generation infrastructure all matter.
