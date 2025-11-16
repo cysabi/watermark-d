@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "drought-gpt",
+    "name": "watermark'd",
     "description": "track how much water you are using through gpt",
     "version": "1",
     "icons": {
