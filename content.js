@@ -183,15 +183,19 @@ function processMessageBlock(block, i) {
     let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
     if (banner) {
         const oldUsage = parseInt(banner.getAttribute("data-water"));
-        // if (oldUsage === ml) {
-        //     return;
-        // }
+        if (oldUsage === ml) {
+            return;
+        }
 
-        const updatedI = chatUsage.findIndex((elem, i) => elem === oldUsage);
-        console.log(chatUsage, updatedI);
-        if (updatedI !== -1) {
-            chatUsage[updatedI] = ml;
-            setChatUsage(chatUsage);
+        if (chatUsage) {
+            const updatedI = chatUsage.findIndex(
+                (elem, i) => elem === oldUsage,
+            );
+            console.log(chatUsage, updatedI);
+            if (updatedI !== -1) {
+                chatUsage[updatedI] = ml;
+                setChatUsage(chatUsage);
+            }
         }
 
         block.removeChild(banner);
