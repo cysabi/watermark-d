@@ -89,7 +89,7 @@ function updateChatUsagePill() {
         pillElement = document.createElement("div");
         pillElement.className = "flex";
         pillElement.innerHTML = `
-          <div class="min-w-9 rounded-full h-full border py-1 px-2.5 font-sm"
+          <div class="min-w-9 rounded-full h-full border py-1 px-2.5"
                style="font-weight: 500; color: oklch(78.9% 0.154 211.53); border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2);">
             <span class="flex items-center gap-2">
               ${droplets}
@@ -98,6 +98,40 @@ function updateChatUsagePill() {
           </div>
           `;
         pillElement.setAttribute("data-water", chatTotalMl);
+
+        element.prepend(pillElement);
+    }
+}
+
+function updateGlobalUsagePill() {
+    const element = document.querySelector(
+        "div.sticky.bottom-0.z-30.empty\\:hidden.bg-token-bg-elevated-secondary div.relative",
+    )?.children?.[0];
+    const usage = getGlobalChatUsage();
+
+    if (element) {
+        let pillElement = element.querySelector("[data-water]");
+        if (pillElement) {
+            const savedTotalMl = pillElement.getAttribute("data-water");
+
+            if (savedTotalMl === usage.toString()) {
+                return;
+            }
+            element.removeChild(pillElement);
+        }
+
+        pillElement = document.createElement("div");
+        pillElement.className = "flex";
+        pillElement.innerHTML = `
+          <span class="flex w-full items-center gap-1 mx-3 rounded-full h-full border py-1 px-2 text-sm"
+                style="border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2);">
+            <span style="color: oklch(71.5% 0.143 215.221);">${droplets}</span>
+            <span style="font-weight: 600;">${semanticMl(usage)} total water bottles used</span>
+          </span>
+          `;
+        pillElement.setAttribute("data-water", usage);
+
+        console.log(pillElement);
 
         element.prepend(pillElement);
     }
@@ -115,6 +149,15 @@ function getChatUsage() {
     return usage[chatId];
 }
 
+function getGlobalChatUsage() {
+    let total = 0;
+    let usage = JSON.parse(window.localStorage.getItem(`waterusage`) ?? "{}");
+    Object.values(usage).forEach((value) => {
+        total += value.reduce((acc, val) => acc + val, 0);
+    });
+    return total;
+}
+
 function setChatUsage(chatUsage) {
     const chatId = window.location.pathname.split("/").at(-1);
     if (!chatId) {
@@ -127,29 +170,36 @@ function setChatUsage(chatUsage) {
     window.localStorage.setItem(`waterusage`, JSON.stringify(usage));
 }
 
-function processMessageBlock(block) {
+function processMessageBlock(block, i) {
     // complete chat usage log
     const chatUsage = getChatUsage();
 
     // get usage for this block
     const text = block.innerText || block.textContent || "";
     const { ml, display, semantic } = calculateWaterUsage(text);
+    console.log(ml, display);
 
     // Remove an existing banner (if any) so we don't stack them
     let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
     if (banner) {
-        const oldUsage = banner.getAttribute("data-usage");
-        if (oldUsage === ml.toString()) {
-            return;
+        const oldUsage = parseInt(banner.getAttribute("data-water"));
+        // if (oldUsage === ml) {
+        //     return;
+        // }
+
+        const updatedI = chatUsage.findIndex((elem, i) => elem === oldUsage);
+        console.log(chatUsage, updatedI);
+        if (updatedI !== -1) {
+            chatUsage[updatedI] = ml;
+            setChatUsage(chatUsage);
         }
 
         block.removeChild(banner);
-        chatUsage && chatUsage.pop();
     }
 
     // create banner
     banner = createBanner(display, semantic);
-    banner.setAttribute("data-usage", ml);
+    banner.setAttribute("data-water", ml);
     block.prepend(banner);
 
     if (chatUsage && respCount > chatUsage.length) {
@@ -158,6 +208,12 @@ function processMessageBlock(block) {
     }
 }
 
+// new elemet
+// no value, count is > length, push new value
+// value exists, element doesnt exist
+// -
+// both exist
+
 let respCount = 0;
 
 const observer = new MutationObserver((mutationsList, observer) => {
@@ -165,10 +221,11 @@ const observer = new MutationObserver((mutationsList, observer) => {
 
     const responses = document.querySelectorAll(TEXT_CONTENT_SELECTOR);
     respCount = responses.length;
-    responses.forEach((resp) => {
-        processMessageBlock(resp);
+    responses.forEach((resp, i) => {
+        processMessageBlock(resp, i);
     });
     updateChatUsagePill();
+    updateGlobalUsagePill();
 
     observer.observe(document.querySelector("main"), {
         childList: true,
