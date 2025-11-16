@@ -67,48 +67,64 @@ function createBanner(usageText, semanticText) {
 const droplets = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-glass-water-icon lucide-glass-water"><path d="M5.116 4.104A1 1 0 0 1 6.11 3h11.78a1 1 0 0 1 .994 1.105L17.19 20.21A2 2 0 0 1 15.2 22H8.8a2 2 0 0 1-2-1.79z"/><path d="M6 12a5 5 0 0 1 6 0 5 5 0 0 0 6 0"/></svg>`;
 
 function updateChatUsagePill() {
-    const wrapper = document.querySelector(
-        '[data-testid="composer-footer-actions"]',
-    );
-    const element = wrapper?.children?.[0];
+    const element = document.querySelector("#conversation-header-actions");
+    const chatUsage = getChatUsage();
+    const chatTotalMl = chatUsage
+        ? chatUsage.reduce((acc, val) => acc + val, 0)
+        : -1;
 
     if (element) {
-        const chatTotalMl = getChatUsage().reduce((acc, val) => acc + val, 0);
-
         let pillElement = element.querySelector("[data-water]");
         if (pillElement) {
             const savedTotalMl = pillElement.getAttribute("data-water");
+
             if (savedTotalMl === chatTotalMl.toString()) {
                 return;
             }
             element.removeChild(pillElement);
         }
 
+        if (!getChatUsage()) return;
+
         pillElement = document.createElement("div");
-        pillElement.className =
-            "min-w-9 rounded-full h-full border py-1 px-2.5 font-sm";
-        pillElement.style =
-            "font-weight: 500; color: oklch(78.9% 0.154 211.53); border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2)";
-        pillElement.innerHTML = `<span class="flex items-center gap-2">${droplets}<span>This chat has drank <span style="font-weight: 600;">~${semanticMl(chatTotalMl)} water bottles</span></span></span>`;
+        pillElement.className = "flex";
+        pillElement.innerHTML = `
+          <div class="min-w-9 rounded-full h-full border py-1 px-2.5 font-sm"
+               style="font-weight: 500; color: oklch(78.9% 0.154 211.53); border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2);">
+            <span class="flex items-center gap-2">
+              ${droplets}
+              <span>This chat has drank <span style="font-weight: 600;">~${semanticMl(chatTotalMl)} water bottles</span>
+            </span>
+          </div>
+          `;
         pillElement.setAttribute("data-water", chatTotalMl);
 
-        element.appendChild(pillElement);
+        element.prepend(pillElement);
     }
 }
 
 function getChatUsage() {
-    let chatUsage = window.localStorage.getItem(
-        `water__${window.location.pathname}`,
-    );
-    chatUsage = chatUsage ? chatUsage.split(",").map((u) => parseInt(u)) : [];
-    return chatUsage;
+    const chatId = window.location.pathname.split("/").at(-1);
+    if (!chatId) {
+        return null;
+    }
+    let usage = JSON.parse(window.localStorage.getItem(`waterusage`) ?? "{}");
+    if (!usage[chatId]) {
+        usage[chatId] = [];
+    }
+    return usage[chatId];
 }
 
 function setChatUsage(chatUsage) {
-    window.localStorage.setItem(
-        `water__${window.location.pathname}`,
-        chatUsage.join(","),
-    );
+    const chatId = window.location.pathname.split("/").at(-1);
+    if (!chatId) {
+        return null;
+    }
+
+    let usage = JSON.parse(window.localStorage.getItem(`waterusage`) ?? "{}");
+    usage[chatId] = chatUsage;
+
+    window.localStorage.setItem(`waterusage`, JSON.stringify(usage));
 }
 
 function processMessageBlock(block) {
@@ -128,7 +144,7 @@ function processMessageBlock(block) {
         }
 
         block.removeChild(banner);
-        chatUsage.pop();
+        chatUsage && chatUsage.pop();
     }
 
     // create banner
@@ -136,7 +152,7 @@ function processMessageBlock(block) {
     banner.setAttribute("data-usage", ml);
     block.prepend(banner);
 
-    if (respCount > chatUsage.length) {
+    if (chatUsage && respCount > chatUsage.length) {
         chatUsage.push(ml);
         setChatUsage(chatUsage);
     }
