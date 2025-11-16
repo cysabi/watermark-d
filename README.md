@@ -1,4 +1,4 @@
-# `drought-gpt`
+# `watermark'd`
 > track how much water you are using through gpt
 
 ## usage
