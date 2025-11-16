@@ -78,7 +78,8 @@ function createBanner(usageText) {
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
              viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="lucide lucide-droplets-icon lucide-droplets">
+             class="lucide lucide-droplets-icon lucide-droplets"
+             style="color: oklch(0.792 0.209 151.711);">
           <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
           <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
         </svg>
@@ -91,9 +92,22 @@ function createBanner(usageText) {
         </span>
       </div>
     `;
-
-    banner.setAttribute("data-usage", usageText);
     return banner;
+}
+
+function getChatUsage() {
+    let chatUsage = window.localStorage.getItem(
+        `water__${window.location.pathname}`,
+    );
+    chatUsage = chatUsage ? chatUsage.split(",").map((u) => parseInt(u)) : [];
+    return chatUsage;
+}
+
+function setChatUsage(chatUsage) {
+    window.localStorage.setItem(
+        `water__${window.location.pathname}`,
+        chatUsage.join(","),
+    );
 }
 
 /**
@@ -101,25 +115,47 @@ function createBanner(usageText) {
  * @param {HTMLElement} block - The main container element for the message.
  */
 function processMessageBlock(block) {
+    // complete chat usage log
+    const chatUsage = getChatUsage();
+
+    // get usage for this block
+    const text = block.innerText || block.textContent || "";
+    const { ml, display } = calculateWaterUsage(text);
+
     // Remove an existing banner (if any) so we don't stack them
     let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
     if (banner) {
+        const usage = banner.getAttribute("data-usage");
+        if (ml.toString() === usage) {
+            // no changes needed, we can return early
+            return;
+        }
+
+        // otherwise, we need to delete the outdated banner
         block.removeChild(banner);
+        chatUsage.pop();
     }
 
-    // Use visible text, not raw HTML, for word counting
-    const text = block.innerText || block.textContent || "";
-    const { display } = calculateWaterUsage(text);
-
+    // create banner
     banner = createBanner(display);
+    banner.setAttribute("data-usage", ml);
     block.prepend(banner);
+
+    if (respCount > chatUsage.length) {
+        chatUsage.push(ml);
+        setChatUsage(chatUsage);
+    }
+
     console.log("Water usage banner added:", banner, "for block:", block);
 }
+
+let respCount = 0;
 
 const observer = new MutationObserver((mutationsList, observer) => {
     observer.disconnect();
 
     const responses = document.querySelectorAll(TEXT_CONTENT_SELECTOR);
+    respCount = responses.length;
     responses.forEach((resp) => {
         processMessageBlock(resp);
     });
