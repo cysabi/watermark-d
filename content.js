@@ -19,20 +19,22 @@ const BANNER_CONTENT_SELECTOR = "div.banner";
  */
 function calculateWaterUsage(text) {
     const charCount = text.length;
-    if (charCount === 0) return "0 nL (Nanoliters)";
+    if (charCount === 0) return "0 mL (Milliliters)";
+    
+    const wordCount = trimmed.split(/\s+/).length;
 
-    const usageLiters = charCount * WATER_PER_CHAR_LITERS;
-    const usageNanoliters = usageLiters * 1e9; // Convert to Nanoliters
+    // 3.5 mL for every 150 words
+    const WATER_PER_150_WORDS_ML = 3.5;
+    const WORDS_PER_UNIT = 150;
 
-    if (usageNanoliters < 1) {
-        // If less than 1 nanoliter, display in picoliters (pL)
-        return `${(usageNanoliters * 1000).toFixed(2)} pL (Picoliters)`;
-    } else if (usageNanoliters < 1000) {
-        // Display in nanoliters (nL)
-        return `${usageNanoliters.toFixed(2)} nL (Nanoliters)`;
+    const usageMilliliters = (wordCount / WORDS_PER_UNIT) * WATER_PER_150_WORDS_ML;
+
+    if (usageMilliliters >= 1000) {
+        // If greater than 1000 milliliter, display in liters (L)
+        const usageLiters = usageMilliliters / 1000;
+        return `${usageLiters.toFixed(2)} L (Liters)`;
     } else {
-        // Display in microliters (µL)
-        return `${(usageNanoliters / 1000).toFixed(2)} µL (Microliters)`;
+        return `${usageMilliliters.toFixed(2)} mL (Milliliters)`;
     }
 }
 
