@@ -38,19 +38,24 @@ function calculateWaterUsage(text) {
     // Total water usage in mL
     const usageMilliliters = BASE_WATER_ML + blocks * ML_PER_25_WORDS;
 
-    let display;
-    if (usageMilliliters >= 1000) {
-        const usageLiters = usageMilliliters / 1000;
-        display = `${usageLiters.toFixed(2)} L (Liters)`;
-    } else {
-        display = `${usageMilliliters.toFixed(2)} mL (Milliliters)`;
-    }
+    const display = displayMl(usageMilliliters);
 
     return {
         words: wordCount,
         ml: usageMilliliters,
         display,
     };
+}
+
+function displayMl(ml) {
+    let display;
+    if (ml >= 1000) {
+        const usageLiters = ml / 1000;
+        display = `${usageLiters.toFixed(2)} L (Liters)`;
+    } else {
+        display = `${ml.toFixed(2)} mL (Milliliters)`;
+    }
+    return display;
 }
 
 /**
@@ -65,11 +70,11 @@ function createBanner(usageText) {
         margin-bottom: 8px;
         border-radius: 12px;
         padding: 4px 12px;
-        background-color: oklch(0.792 0.209 151.711 / 0.1);
+        background-color: oklch(60.9% 0.126 221.723 / 0.1);
         color: white;
         font-size: 1.5rem;
         font-family: inherit;
-        border: 2px solid oklch(0.792 0.209 151.711);
+        border: 2px solid oklch(60.9% 0.126 221.723);
     `;
     banner.className = "banner";
 
@@ -79,12 +84,11 @@ function createBanner(usageText) {
              viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="lucide lucide-droplets-icon lucide-droplets"
-             style="color: oklch(0.792 0.209 151.711);">
+             style="color: oklch(60.9% 0.126 221.723);">
           <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
           <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
         </svg>
-        <span style="font-weight: 500;">You just used</span>
-        <span style="font-weight: 700;">${usageText}</span>
+        <span style="font-weight: 500;">You just used <span style="font-weight: 700;">${usageText}</span></span>
       </div>
       <div>
         <span style="font-size: 1rem; font-style: italic">
@@ -93,6 +97,40 @@ function createBanner(usageText) {
       </div>
     `;
     return banner;
+}
+
+function updateChatUsagePill() {
+    console.log("this");
+    const wrapper = document.querySelector(
+        '[data-testid="composer-footer-actions"]',
+    );
+    const element = wrapper.children?.[0];
+    console.log("that", wrapper, element);
+
+    if (element) {
+        const chatTotalMl = getChatUsage().reduce((acc, val) => acc + val, 0);
+
+        let pillElement = element.querySelector("[data-water]");
+        console.log("those", pillElement);
+        if (pillElement) {
+            const savedTotalMl = pillElement.getAttribute("data-water");
+            if (savedTotalMl === chatTotalMl.toString()) {
+                return;
+            }
+            element.removeChild(pillElement);
+        }
+
+        pillElement = document.createElement("div", {
+            className: "min-w-9 rounded-full h-full",
+            style: "background-color: oklch(60.9% 0.126 221.723 / 0.1)",
+        });
+
+        pillElement.innerText = `This chat has drank a total of ${displayMl(chatTotalMl)}`;
+        pillElement.setAttribute("data-water", chatTotalMl);
+
+        console.log("those2", pillElement);
+        element.appendChild(pillElement);
+    }
 }
 
 function getChatUsage() {
@@ -159,6 +197,7 @@ const observer = new MutationObserver((mutationsList, observer) => {
     responses.forEach((resp) => {
         processMessageBlock(resp);
     });
+    updateChatUsagePill();
 
     observer.observe(document.querySelector("main"), {
         childList: true,
