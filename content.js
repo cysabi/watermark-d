@@ -8,24 +8,20 @@ const BASE_WATER_ML = 250;
 const ML_PER_25_WORDS = 63;
 const WORDS_PER_STEP = 25;
 
-// Tube config: how much water (mL) fills the tube completely
-const MAX_TUBE_ML = 3000;
-
+// Selector for the actual text content within the block.
 const TEXT_CONTENT_SELECTOR = "div.markdown.prose, .text-token";
+
+// Selector for the added banner
 const BANNER_CONTENT_SELECTOR = "div.banner";
-const TUBE_CONTAINER_ID = "water-usage-tube";
-const TUBE_FILL_ID = "water-usage-tube-fill";
-const TUBE_LABEL_ID = "water-usage-tube-label";
 
 /**
- * Calculates the estimated water usage for a single block.
- * Starts at 250 mL and adds 63 mL for every FULL 25 words.
+ * Calculates the estimated water usage and returns a formatted string.
+ * Starts at 250 mL and adds 63 mL for every 25 words (floor).
  * @param {string} text - The content of the prompt or response.
  * @returns {{words: number, ml: number, display: string}}
  */
 function calculateWaterUsage(text) {
     const trimmed = (text || "").trim();
-
     if (!trimmed) {
         return {
             words: 0,
@@ -35,16 +31,14 @@ function calculateWaterUsage(text) {
     }
 
     const wordCount = trimmed.split(/\s+/).length;
+
+    // Number of full 25-word blocks
     const blocks = Math.floor(wordCount / WORDS_PER_STEP);
+
+    // Total water usage in mL
     const usageMilliliters = BASE_WATER_ML + blocks * ML_PER_25_WORDS;
 
-    let display;
-    if (usageMilliliters >= 1000) {
-        const usageLiters = usageMilliliters / 1000;
-        display = `${usageLiters.toFixed(2)} L (Liters)`;
-    } else {
-        display = `${usageMilliliters.toFixed(2)} mL (Milliliters)`;
-    }
+    const display = displayMl(usageMilliliters);
 
     return {
         words: wordCount,
@@ -53,126 +47,48 @@ function calculateWaterUsage(text) {
     };
 }
 
-/**
- * Initialize the right-side tube UI if it doesn't exist yet.
- * @returns {HTMLElement} - The tube container element.
- */
-function initWaterTube() {
-    let container = document.getElementById(TUBE_CONTAINER_ID);
-    if (container) return container;
-
-    // Main tube container
-    container = document.createElement("div");
-    container.id = TUBE_CONTAINER_ID;
-    container.style.cssText = `
-        position: fixed;
-        right: 24px;
-        bottom: 24px;
-        width: 40px;
-        height: 180px;
-        border-radius: 999px;
-        border: 2px solid #0d6efd;
-        background: rgba(13, 110, 253, 0.08);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        overflow: hidden;
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
-        z-index: 9999;
-    `;
-
-    const fill = document.createElement("div");
-    fill.id = TUBE_FILL_ID;
-    fill.style.cssText = `
-        width: 100%;
-        height: 0%;
-        background: linear-gradient(to top, #0d6efd, #46a5ff);
-        transition: height 0.5s ease-out;
-    `;
-
-    container.appendChild(fill);
-    document.body.appendChild(container);
-
-    // Label next to the tube
-    const label = document.createElement("div");
-    label.id = TUBE_LABEL_ID;
-    label.style.cssText = `
-        position: fixed;
-        right: 72px;
-        bottom: 24px;
-        padding: 4px 10px;
-        border-radius: 999px;
-        background: rgba(0, 0, 0, 0.6);
-        color: #ffffff;
-        font-size: 0.75rem;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        pointer-events: none;
-        z-index: 10000;
-    `;
-    label.textContent = "0 mL";
-
-    document.body.appendChild(label);
-
-    return container;
-}
-
-/**
- * Update the water tube and label for **this message**.
- * It mirrors the same value shown in the banner (non-cumulative).
- * @param {number} ml - Water usage (mL) for the current block.
- */
-function updateWaterTube(ml) {
-    if (isNaN(ml)) return;
-
-    initWaterTube();
-
-    const fill = document.getElementById(TUBE_FILL_ID);
-    const label = document.getElementById(TUBE_LABEL_ID);
-    if (!fill || !label) return;
-
-    const fraction = Math.max(0, Math.min(1, ml / MAX_TUBE_ML));
-    fill.style.height = (fraction * 100).toFixed(1) + "%";
-
+function displayMl(ml) {
+    let display;
     if (ml >= 1000) {
-        label.textContent = `${(ml / 1000).toFixed(2)} L`;
+        const usageLiters = ml / 1000;
+        display = `${usageLiters.toFixed(2)} L (Liters)`;
     } else {
-        label.textContent = `${ml.toFixed(0)} mL`;
+        display = `${ml.toFixed(2)} mL (Milliliters)`;
     }
+    return display;
 }
 
 /**
- * Creates and returns the styled blue banner element.
+ * Creates and returns the styled banner element.
  * @param {string} usageText - The formatted water usage string.
  * @returns {HTMLElement} - The banner element to inject.
  */
 function createBanner(usageText) {
     const banner = document.createElement("div");
+    // Using simple, unobtrusive styling to fit with the UI
     banner.style.cssText = `
         margin-bottom: 8px;
         border-radius: 12px;
         padding: 4px 12px;
-        background-color: rgba(13, 110, 253, 0.2);
-        color: #0b1f3b;
-        font-size: 1.1rem;
+        background-color: oklch(60.9% 0.126 221.723 / 0.1);
+        color: white;
+        font-size: 1.5rem;
         font-family: inherit;
-        border: 2px solid #0d6efd;
+        border: 2px solid oklch(60.9% 0.126 221.723);
     `;
     banner.className = "banner";
 
     banner.innerHTML = `
-<<<<<<< HEAD
       <div style="display: flex; justify-content: space-between; align-items: center;">
         ${droplets}
         <span style="font-weight: 500;">You just used <span style="font-weight: 700;">${usageText}</span></span>
       </div>
       <div>
-        <span style="font-size: 0.85rem; font-style: italic">
-          (Visualized in the tube ➜)
+        <span style="font-size: 1rem; font-style: italic">
+          That's as much as 42 gallons of air
         </span>
       </div>
     `;
-
-    banner.setAttribute("data-usage", usageText);
     return banner;
 }
 
@@ -241,60 +157,60 @@ function setChatUsage(chatUsage) {
  * @param {HTMLElement} block - The main container element for the message.
  */
 function processMessageBlock(block) {
-    // Remove existing banner if present (we'll recreate it)
-    let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
-    if (banner) {
-        banner.remove();
-    }
+    // complete chat usage log
+    const chatUsage = getChatUsage();
 
+    // get usage for this block
     const text = block.innerText || block.textContent || "";
     const { ml, display } = calculateWaterUsage(text);
 
-    // Store the per-block usage (in case you want to use it later)
-    block.setAttribute("data-water-ml", ml.toString());
-
-    // Update tube to visually match this message
-    updateWaterTube(ml);
-
-    // Add fresh banner
-    banner = createBanner(display);
-    block.prepend(banner);
-    console.log("Water usage banner + tube updated for block:", { ml });
-}
-
-function startObserver() {
-    // Ensure tube exists once we start
-    initWaterTube();
-
-    const observer = new MutationObserver((mutationsList, observer) => {
-        observer.disconnect();
-
-        const responses = document.querySelectorAll(TEXT_CONTENT_SELECTOR);
-        responses.forEach((resp) => {
-            processMessageBlock(resp);
-        });
-
-        const main = document.querySelector("main");
-        if (main) {
-            observer.observe(main, {
-                childList: true,
-                subtree: true,
-            });
+    // Remove an existing banner (if any) so we don't stack them
+    let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
+    if (banner) {
+        const usage = banner.getAttribute("data-usage");
+        if (ml.toString() === usage) {
+            // no changes needed, we can return early
+            return;
         }
-    });
 
-    const main = document.querySelector("main");
-    if (main) {
-        observer.observe(main, {
-            childList: true,
-            subtree: true,
-        });
+        // otherwise, we need to delete the outdated banner
+        block.removeChild(banner);
+        chatUsage.pop();
     }
+
+    // create banner
+    banner = createBanner(display);
+    banner.setAttribute("data-usage", ml);
+    block.prepend(banner);
+
+    if (respCount > chatUsage.length) {
+        chatUsage.push(ml);
+        setChatUsage(chatUsage);
+    }
+
+    console.log("Water usage banner added:", banner, "for block:", block);
 }
 
-// Start when ready
-if (document.readyState === "loading") {
-    window.addEventListener("DOMContentLoaded", startObserver);
-} else {
-    startObserver();
-}
+let respCount = 0;
+
+const observer = new MutationObserver((mutationsList, observer) => {
+    observer.disconnect();
+
+    const responses = document.querySelectorAll(TEXT_CONTENT_SELECTOR);
+    respCount = responses.length;
+    responses.forEach((resp) => {
+        processMessageBlock(resp);
+    });
+    updateChatUsagePill();
+
+    observer.observe(document.querySelector("main"), {
+        childList: true,
+        subtree: true,
+    });
+});
+
+// Start observing the chat window for dynamically loaded content
+observer.observe(document.querySelector("main"), {
+    childList: true,
+    subtree: true,
+});
