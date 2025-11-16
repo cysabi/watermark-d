@@ -28,27 +28,8 @@ function displayMl(ml) {
 }
 
 function semanticMl(ml) {
-    if (ml <= 0) return "No water used—no impact!";
-
-    const liters = ml / 1000;
-
-    // Constants
-    const bottleMl = 500; // 1 standard water bottle
-    const showerMlPerMin = 950; // Average shower uses 9.5 liters/min
-    const dailyHumanNeedsLiters = 50; // Minimum daily water to keep 1 person alive
-
-    // Calculate derived values
-    const showerMinutes = liters / (showerMlPerMin / 1000); // minutes of shower
-    const peopleDays = liters / dailyHumanNeedsLiters; // number of person-days
-
-    if (showerMinutes < 10) {
-        const bottles = (ml / bottleMl).toFixed(1);
-        return `That's roughly enough to fill ${bottles} water bottles`;
-    } else if (peopleDays < 2) {
-        return `That's roughly enough to shower for ${showerMinutes.toFixed(1)} minutes`;
-    } else {
-        return `That's roughly enough water to keep someone alive for ${peopleDays.toFixed(2)} days`;
-    }
+    const bottles = (parseFloat((ml / 500).toFixed(1)) + 0.1).toFixed(1);
+    return bottles;
 }
 
 function createBanner(usageText, semanticText) {
@@ -58,7 +39,7 @@ function createBanner(usageText, semanticText) {
         margin-bottom: 12px;
         border-radius: 12px;
         padding: 4px 12px;
-        background-color: oklch(78.9% 0.154 211.53 / 0.1);
+        background-color: oklch(78.9% 0.154 211.53 / 0.2);
         color: white;
         font-size: 1.5rem;
         font-family: inherit;
@@ -75,7 +56,7 @@ function createBanner(usageText, semanticText) {
         <div style="display: flex; flex-direction: column; align-items: flex-end;">
           <div style="font-weight: 700;">${usageText}</div>
           <div style="font-weight: 500; font-size: 1rem; font-style: italic">
-            ${semanticText}!
+            That's roughly enough to fill ${semanticText} water bottles!
           </div>
         </div>
       </div>
@@ -83,15 +64,8 @@ function createBanner(usageText, semanticText) {
     return banner;
 }
 
-const droplets = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-       viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-       class="lucide lucide-droplets-icon lucide-droplets">
-    <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
-    <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
-  </svg>
-  `;
+const droplets = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-milk-icon lucide-milk">
+  <path d="M8 2h8"/><path d="M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2"/><path d="M7 15a6.472 6.472 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/></svg>`;
 
 function updateChatUsagePill() {
     const wrapper = document.querySelector(
@@ -113,10 +87,10 @@ function updateChatUsagePill() {
 
         pillElement = document.createElement("div");
         pillElement.className =
-            "min-w-9 rounded-full h-full border py-1 px-2 font-sm";
+            "min-w-9 rounded-full h-full border py-1 px-2.5 font-sm";
         pillElement.style =
-            "font-weight: 600; color: oklch(78.9% 0.154 211.53); border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2)";
-        pillElement.innerHTML = `<span class="flex items-center gap-2">${droplets}This chat has used ${displayMl(chatTotalMl)} total</span>`;
+            "font-weight: 500; color: oklch(78.9% 0.154 211.53); border-color: oklch(78.9% 0.154 211.53 / 0.5); background-color: oklch(78.9% 0.154 211.53 / 0.2)";
+        pillElement.innerHTML = `<span class="flex items-center gap-2">${droplets}<span>This chat has drank <span style="font-weight: 600;">~${semanticMl(chatTotalMl)} water bottles</span></span></span>`;
         pillElement.setAttribute("data-water", chatTotalMl);
 
         element.appendChild(pillElement);
