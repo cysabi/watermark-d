@@ -28,7 +28,7 @@ function displayMl(ml) {
 }
 
 function semanticMl(ml) {
-    const bottles = (parseFloat((ml / 500).toFixed(1)) + 0.1).toFixed(1);
+    const bottles = Math.round(parseFloat(ml / 500) * 10) / 10;
     return bottles;
 }
 
