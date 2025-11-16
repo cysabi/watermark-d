@@ -1,5 +1,5 @@
-# `lower`
-> ask the web to lower their voice a little
+# `drought-gpt`
+> track how much water you are using through gpt
 
 ## usage
 1. download the repo
@@ -12,4 +12,4 @@
 
 ---
 
-*empathy included • [**@cysabi**](https://github.com/cysabi) • [cysabi.github.io](https://cysabi.github.io)*
+*for [technica 2025](https://gotechnica.org)*
