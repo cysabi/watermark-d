@@ -108,7 +108,7 @@ function updateChatUsagePill() {
     const wrapper = document.querySelector(
         '[data-testid="composer-footer-actions"]',
     );
-    const element = wrapper.children?.[0];
+    const element = wrapper?.children?.[0];
     console.log("that", wrapper, element);
 
     if (element) {
