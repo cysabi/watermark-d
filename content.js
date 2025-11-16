@@ -80,14 +80,7 @@ function createBanner(usageText) {
 
     banner.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="lucide lucide-droplets-icon lucide-droplets"
-             style="color: oklch(60.9% 0.126 221.723);">
-          <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
-          <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
-        </svg>
+        ${droplets}
         <span style="font-weight: 500;">You just used <span style="font-weight: 700;">${usageText}</span></span>
       </div>
       <div>
@@ -98,6 +91,17 @@ function createBanner(usageText) {
     `;
     return banner;
 }
+
+const droplets = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+       class="lucide lucide-droplets-icon lucide-droplets"
+       style="color: oklch(60.9% 0.126 221.723);">
+    <path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/>
+    <path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>
+  </svg>
+  `;
 
 function updateChatUsagePill() {
     console.log("this");
@@ -120,12 +124,12 @@ function updateChatUsagePill() {
             element.removeChild(pillElement);
         }
 
-        pillElement = document.createElement("div", {
-            className: "min-w-9 rounded-full h-full",
-            style: "background-color: oklch(60.9% 0.126 221.723 / 0.1)",
-        });
-
-        pillElement.innerText = `This chat has drank a total of ${displayMl(chatTotalMl)}`;
+        pillElement = document.createElement("div");
+        pillElement.className =
+            "min-w-9 rounded-full h-full border py-1 px-2 font-sm";
+        pillElement.style =
+            "font-weight: 600; color: oklch(78.9% 0.154 211.53); background-color: oklch(78.9% 0.154 211.53 / 0.2)";
+        pillElement.innerHTML = `<span class="flex items-center gap-2">${droplets}<span>This chat has drank a total of ${displayMl(chatTotalMl)}</span></span>`;
         pillElement.setAttribute("data-water", chatTotalMl);
 
         console.log("those2", pillElement);
