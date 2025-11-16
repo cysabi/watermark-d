@@ -1,5 +1,5 @@
-const TEXT_CONTENT_SELECTOR = "div.markdown.prose, .text-token"; // Selector for the actual text content within the block.
-const BANNER_CONTENT_SELECTOR = "div.banner"; // Selector for the added banner
+const TEXT_CONTENT_SELECTOR = "div.markdown.prose, .text-token";
+const BANNER_CONTENT_SELECTOR = "div.banner";
 
 const BASE_WATER_ML = 250;
 const ML_PER_25_WORDS = 63;
@@ -34,7 +34,6 @@ function semanticMl(ml) {
 
 function createBanner(usageText, semanticText) {
     const banner = document.createElement("div");
-    // Using simple, unobtrusive styling to fit with the UI
     banner.style.cssText = `
         margin-bottom: 12px;
         border-radius: 12px;
@@ -179,7 +178,7 @@ function processMessageBlock(block, i) {
     const { ml, display, semantic } = calculateWaterUsage(text);
     console.log(ml, display);
 
-    // Remove an existing banner (if any) so we don't stack them
+    // remove an existing banner (if any) so we don't stack them
     let banner = block.querySelector(BANNER_CONTENT_SELECTOR);
     if (banner) {
         const oldUsage = parseInt(banner.getAttribute("data-water"));
@@ -211,12 +210,6 @@ function processMessageBlock(block, i) {
         setChatUsage(chatUsage);
     }
 }
-
-// new elemet
-// no value, count is > length, push new value
-// value exists, element doesnt exist
-// -
-// both exist
 
 let respCount = 0;
 
